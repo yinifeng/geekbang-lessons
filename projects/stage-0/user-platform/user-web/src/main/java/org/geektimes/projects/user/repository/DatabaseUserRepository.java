@@ -43,6 +43,14 @@ public class DatabaseUserRepository implements UserRepository {
 
     @Override
     public boolean save(User user) {
+        try {
+            PreparedStatement preparedStatement = getConnection().prepareStatement(INSERT_USER_DML_SQL);
+            
+            int i = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         return false;
     }
 
@@ -58,7 +66,32 @@ public class DatabaseUserRepository implements UserRepository {
 
     @Override
     public User getById(Long userId) {
-        return null;
+        return executeQuery("SELECT id,name,password,email,phoneNumber FROM users WHERE id=?",
+                resultSet -> {
+                    // TODO
+                    // BeanInfo -> IntrospectionException
+                    BeanInfo userBeanInfo = Introspector.getBeanInfo(User.class, Object.class);
+                    User user = new User();
+                    if (resultSet.next()) { // 如果存在并且游标滚动 // SQLException
+                        for (PropertyDescriptor propertyDescriptor : userBeanInfo.getPropertyDescriptors()) {
+                            String fieldName = propertyDescriptor.getName();
+                            Class fieldType = propertyDescriptor.getPropertyType();
+                            String methodName = resultSetMethodMappings.get(fieldType);
+                            // 可能存在映射关系（不过此处是相等的）
+                            String columnLabel = mapColumnLabel(fieldName);
+                            Method resultSetMethod = ResultSet.class.getMethod(methodName, String.class);
+                            // 通过放射调用 getXXX(String) 方法
+                            Object resultValue = resultSetMethod.invoke(resultSet, columnLabel);
+                            // 获取 User 类 Setter方法
+                            // PropertyDescriptor ReadMethod 等于 Getter 方法
+                            // PropertyDescriptor WriteMethod 等于 Setter 方法
+                            Method setterMethodFromUser = propertyDescriptor.getWriteMethod();
+                            // 以 id 为例，  user.setId(resultSet.getLong("id"));
+                            setterMethodFromUser.invoke(user, resultValue);
+                        }
+                    }
+                    return user;
+                }, COMMON_EXCEPTION_HANDLER, userId);
     }
 
     @Override

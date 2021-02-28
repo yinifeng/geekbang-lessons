@@ -7,5 +7,7 @@
 	<div class="container-lg">
 		<!-- Content here -->
 		Hello,World 2021
+		<hr />
+		<a href="user/register.jsp">用户注册</a>
 	</div>
 </body>
