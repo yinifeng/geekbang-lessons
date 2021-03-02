@@ -43,15 +43,14 @@ public class DatabaseUserRepository implements UserRepository {
 
     @Override
     public boolean save(User user) {
-        try {
-            PreparedStatement preparedStatement = getConnection().prepareStatement(INSERT_USER_DML_SQL);
-            
-            int i = preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return false;
+        //TODO 动态生成sql
+        int i = this.executeUpdate(INSERT_USER_DML_SQL,resultSet->{
+            if (resultSet.next()){
+                user.setId(resultSet.getLong(1));
+            }
+            return user;
+        }, COMMON_EXCEPTION_HANDLER, user.getName(), user.getPassword(), user.getEmail(), user.getPhoneNumber());
+        return i > 0;
     }
 
     @Override
@@ -134,6 +133,24 @@ public class DatabaseUserRepository implements UserRepository {
         });
     }
 
+    protected <T> int executeUpdate(String sql,ThrowableFunction<ResultSet, T> function,
+                                 Consumer<Throwable> exceptionHandler, Object... args) {
+        Connection connection = getConnection();
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
+            //填充参数
+            this.fillInPreparedStatementArgs(preparedStatement, args);
+            int result = preparedStatement.executeUpdate();
+            // 返回一个 POJO List -> ResultSet -> POJO List
+            // ResultSet -> T
+            function.apply(preparedStatement.getGeneratedKeys());
+            return result;
+        } catch (Throwable e) {
+            exceptionHandler.accept(e);
+        }
+        return 0;
+    }
+
     /**
      * @param sql
      * @param function
@@ -145,21 +162,7 @@ public class DatabaseUserRepository implements UserRepository {
         Connection connection = getConnection();
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            for (int i = 0; i < args.length; i++) {
-                Object arg = args[i];
-                Class argType = arg.getClass();
-
-                Class wrapperType = wrapperToPrimitive(argType);
-
-                if (wrapperType == null) {
-                    wrapperType = argType;
-                }
-
-                // Boolean -> boolean
-                String methodName = preparedStatementMethodMappings.get(argType);
-                Method method = PreparedStatement.class.getMethod(methodName, wrapperType);
-                method.invoke(preparedStatement, i + 1, args);
-            }
+            this.fillInPreparedStatementArgs(preparedStatement, args);
             ResultSet resultSet = preparedStatement.executeQuery();
             // 返回一个 POJO List -> ResultSet -> POJO List
             // ResultSet -> T
@@ -168,6 +171,24 @@ public class DatabaseUserRepository implements UserRepository {
             exceptionHandler.accept(e);
         }
         return null;
+    }
+
+    private void fillInPreparedStatementArgs(PreparedStatement preparedStatement, Object[] args) throws Throwable {
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class argType = arg.getClass();
+
+            Class wrapperType = wrapperToPrimitive(argType);
+
+            if (wrapperType == null) {
+                wrapperType = argType;
+            }
+
+            // Boolean -> boolean
+            String methodName = preparedStatementMethodMappings.get(argType);
+            Method method = PreparedStatement.class.getMethod(methodName,int.class, wrapperType);
+            method.invoke(preparedStatement, i + 1, arg);
+        }
     }
 
 

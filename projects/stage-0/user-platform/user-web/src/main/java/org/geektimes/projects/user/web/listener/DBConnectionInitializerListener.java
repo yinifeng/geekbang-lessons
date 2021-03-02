@@ -2,7 +2,6 @@ package org.geektimes.projects.user.web.listener;
 
 import org.geektimes.projects.user.util.DataSourceUtils;
 
-import javax.annotation.Resource;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -11,7 +10,7 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import javax.sql.DataSource;
 
-//@WebListener
+@WebListener
 public class DBConnectionInitializerListener implements ServletContextListener {
 
     /*
@@ -20,18 +19,23 @@ public class DBConnectionInitializerListener implements ServletContextListener {
      * name：指定数据源的名称，即数据源处配置的name属性
      */
     //@Resource(lookup="java:/comp/env", name="jdbc/UserPlatformDB")
-    private DataSource dataSource;
+    //private DataSource dataSource;
     
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         try {
-            Context initCtx = new InitialContext();
-            Context envCtx = (Context) initCtx.lookup("java:comp/env");
+            //Context initCtx = new InitialContext();
+            //Context envCtx = (Context) initCtx.lookup("java:comp/env");
 
             // Look up our data source
-            DataSource ds = (DataSource) envCtx.lookup("jdbc/UserPlatformDB");
+            //DataSource ds = (DataSource) initCtx.lookup("java:/comp/env/jdbc/UserPlatformDB");
+
+            Context initCtx = new InitialContext();
+            Context envCtx = (Context) initCtx.lookup("java:comp/env");
+            DataSource ds = (DataSource)
+                    envCtx.lookup("jdbc/UserPlatformDB");
             sce.getServletContext().log(ds+"----DBConnectionInitializerListener=====================>contextInitialized");
-            DataSourceUtils.setDadaSource(dataSource);
+            DataSourceUtils.setDadaSource(ds);
         } catch (NamingException e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());

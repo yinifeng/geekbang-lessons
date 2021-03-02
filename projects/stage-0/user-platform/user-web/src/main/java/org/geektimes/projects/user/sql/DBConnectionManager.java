@@ -5,12 +5,10 @@ import org.geektimes.projects.user.domain.User;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 public class DBConnectionManager {
 
@@ -21,7 +19,15 @@ public class DBConnectionManager {
     }
 
     public Connection getConnection() {
-        return this.connection;
+        try {
+            //TODO JNDI方式获取
+            String databaseURL = "jdbc:derby:/db/user-platform;create=true";
+            this.connection = DriverManager.getConnection(databaseURL);
+            return this.connection;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     public void releaseConnection() {
