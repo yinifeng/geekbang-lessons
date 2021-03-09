@@ -92,7 +92,7 @@ public class ComponentContext {
             // 初始阶段 - {@link PostConstruct}
             processPostConstruct(component, componentClass);
             // TODO 实现销毁阶段 - {@link PreDestroy}
-            processPreDestroy();
+            //processPreDestroy();
         });
     }
 
@@ -131,8 +131,20 @@ public class ComponentContext {
         });
     }
 
-    private void processPreDestroy() {
-        // TODO
+    private void processPreDestroy(Object component, Class<?> componentClass) {
+        Stream.of(componentClass.getMethods())
+                .filter(method ->
+                        !Modifier.isStatic(method.getModifiers()) &&      // 非 static
+                                method.getParameterCount() == 0 &&        // 没有参数
+                                method.isAnnotationPresent(PreDestroy.class) // 标注 @PreDestroy
+                ).forEach(method -> {
+            // 执行目标方法
+            try {
+                method.invoke(component);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     /**
@@ -233,6 +245,12 @@ public class ComponentContext {
     }
 
     public void destroy() throws RuntimeException {
+        componentsMap.values().forEach(component -> {
+            Class<?> componentClass = component.getClass();
+            // TODO 实现销毁阶段 - {@link PreDestroy}
+            processPreDestroy(component,componentClass);
+        });
+        componentsMap.clear();
         close(this.envContext);
     }
 
