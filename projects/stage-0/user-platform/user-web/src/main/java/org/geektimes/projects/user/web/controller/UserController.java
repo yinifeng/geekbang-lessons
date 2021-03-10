@@ -36,21 +36,9 @@ public class UserController implements PageController {
         try {
             //获取注册页面输入信息
             String userName = request.getParameter("userName");
-            if (userName == null){
-                throw new RuntimeException("用户名不能为空");
-            }
             String userPassword = request.getParameter("userPassword");
-            if (userPassword == null){
-                throw new RuntimeException("用户密码不能为空");
-            }
             String userEmail = request.getParameter("userEmail");
-            if (userEmail == null){
-                throw new RuntimeException("用户邮箱不能为空");
-            }
             String userPhoneNumber = request.getParameter("userPhoneNumber");
-            if (userPhoneNumber == null){
-                throw new RuntimeException("用户电话不能为空");
-            }
 
             logger.info("用户注册信息：userName="+userName+"userEmail="+userEmail);
             //TODO 校验用户名数据库是否已经存在

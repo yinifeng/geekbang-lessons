@@ -1,6 +1,7 @@
 package org.geektimes.projects.user.domain;
 
 import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
 import javax.validation.constraints.Pattern;
@@ -24,10 +25,12 @@ public class User implements Serializable {
     private Long id;
 
     @Column
+    @NotBlank(message = "用户名不能为空")
     private String name;
 
     @Column
     @Length(min = 6,max = 32)
+    @NotBlank(message = "用户密码不能为空")
     private String password;
 
     @Column
