@@ -1,6 +1,7 @@
 package org.geektimes.projects.user.web.listener;
 
 import org.geektimes.context.ComponentContext;
+import org.geektimes.projects.user.management.MBeanRegister;
 import org.geektimes.projects.user.sql.DBConnectionManager;
 
 import javax.servlet.ServletContext;
@@ -32,6 +33,7 @@ public class ComponentContextInitializerListener implements ServletContextListen
             String className = value.getClassName();
             servletContext.log("++++++++++++++++="+className);
         });
+        MBeanRegister.register();
     }
 
     private void initDDL(ComponentContext context) {
