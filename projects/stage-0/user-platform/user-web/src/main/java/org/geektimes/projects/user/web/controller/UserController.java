@@ -1,6 +1,6 @@
 package org.geektimes.projects.user.web.controller;
 
-import org.geektimes.context.ComponentContext;
+import org.geektimes.context.ClassicComponentContext;
 import org.geektimes.projects.user.domain.User;
 import org.geektimes.projects.user.service.UserService;
 import org.geektimes.web.mvc.controller.PageController;
@@ -24,8 +24,8 @@ public class UserController implements PageController {
     private final Validator validator;
 
     public UserController() {
-        this.userService = ComponentContext.getInstance().getComponent("bean/UserService");
-        this.validator = ComponentContext.getInstance().getComponent("bean/Validator");
+        this.userService = ClassicComponentContext.getInstance().getComponent("bean/UserService");
+        this.validator = ClassicComponentContext.getInstance().getComponent("bean/Validator");
     }
     
     @POST

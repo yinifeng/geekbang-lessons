@@ -1,6 +1,6 @@
 package org.geektimes.projects.user.web.listener;
 
-import org.geektimes.context.ComponentContext;
+import org.geektimes.context.ClassicComponentContext;
 import org.geektimes.projects.user.management.MBeanRegister;
 import org.geektimes.projects.user.sql.DBConnectionManager;
 
@@ -14,7 +14,7 @@ import java.sql.Statement;
 import java.util.Map;
 
 /**
- * {@link ComponentContext} 初始化器
+ * {@link ClassicComponentContext} 初始化器
  * ContextLoaderListener
  */
 public class ComponentContextInitializerListener implements ServletContextListener {
@@ -24,7 +24,7 @@ public class ComponentContextInitializerListener implements ServletContextListen
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         this.servletContext = sce.getServletContext();
-        ComponentContext context = new ComponentContext();
+        ClassicComponentContext context = new ClassicComponentContext();
         context.init(servletContext);
         //初始化ddl脚本
         initDDL(context);
@@ -36,7 +36,7 @@ public class ComponentContextInitializerListener implements ServletContextListen
         MBeanRegister.register();
     }
 
-    private void initDDL(ComponentContext context) {
+    private void initDDL(ClassicComponentContext context) {
         DBConnectionManager dbConnectionManager = context.getComponent("bean/DBConnectionManager");
         Connection connection = dbConnectionManager.getConnection();
         Statement statement = null;
@@ -75,4 +75,3 @@ public class ComponentContextInitializerListener implements ServletContextListen
     }
 
 }
- 
