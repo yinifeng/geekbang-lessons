@@ -21,7 +21,8 @@ public class DefaultResourceConfigSource extends MapBasedConfigSource {
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource(configFileLocation);
         if (resource == null) {
-            logger.info("The default config file can't be found in the classpath : " + configFileLocation);
+            //TODO 空指针,构造函数未执行完成，成员变量不会初始化
+            //logger.info("The default config file can't be found in the classpath : " + configFileLocation);
             return;
         }
         try (InputStream inputStream = resource.openStream()) {

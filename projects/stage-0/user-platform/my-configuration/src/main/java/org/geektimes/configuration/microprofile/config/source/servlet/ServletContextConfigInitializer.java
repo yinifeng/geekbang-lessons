@@ -14,7 +14,7 @@ import javax.servlet.ServletContextListener;
  * @see ServletConfigInitializer
  */
 public class ServletContextConfigInitializer implements ServletContextListener {
-
+    public static final String DEFAULT_CONFIG_PROVIDER_RESOLVER = "org.geektimes.configuration.microprofile.config.DefaultConfigProviderResolver";
 
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
@@ -36,6 +36,8 @@ public class ServletContextConfigInitializer implements ServletContextListener {
         Config config = configBuilder.build();
         // 注册 Config 关联到当前 ClassLoader
         configProviderResolver.registerConfig(config, classLoader);
+
+        servletContext.setAttribute(DEFAULT_CONFIG_PROVIDER_RESOLVER,configProviderResolver);
     }
 
     @Override

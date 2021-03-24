@@ -1,6 +1,9 @@
 package org.geektimes.web.mvc;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.microprofile.config.Config;
+import org.geektimes.configuration.microprofile.config.DefaultConfigProviderResolver;
+import org.geektimes.configuration.microprofile.config.source.servlet.ServletContextConfigInitializer;
 import org.geektimes.web.mvc.controller.Controller;
 import org.geektimes.web.mvc.controller.PageController;
 import org.geektimes.web.mvc.controller.RestController;
@@ -38,6 +41,8 @@ public class FrontControllerServlet extends HttpServlet {
      * 请求路径和 {@link HandlerMethodInfo} 映射关系缓存
      */
     private Map<String, HandlerMethodInfo> handleMethodInfoMapping = new HashMap<>();
+    
+    private Config config;
 
     /**
      * 初始化 Servlet
@@ -45,6 +50,11 @@ public class FrontControllerServlet extends HttpServlet {
      * @param servletConfig
      */
     public void init(ServletConfig servletConfig) {
+        //TODO 通过ServletContext获取config
+        ServletContext servletContext = servletConfig.getServletContext();
+        DefaultConfigProviderResolver configProviderResolver = (DefaultConfigProviderResolver)servletContext.getAttribute(ServletContextConfigInitializer.DEFAULT_CONFIG_PROVIDER_RESOLVER);
+        this.config = configProviderResolver.getConfig(servletContext.getClassLoader());
+        servletContext.log("配置应用名称===================>"+config.getValue("application.name",String.class));
         initHandleMethods();
     }
 
