@@ -1,6 +1,7 @@
 package org.geektimes.projects.user.web.listener;
 
 import org.geektimes.context.ClassicComponentContext;
+import org.geektimes.context.ComponentContext;
 import org.geektimes.projects.user.management.MBeanRegister;
 import org.geektimes.projects.user.sql.DBConnectionManager;
 
@@ -70,8 +71,8 @@ public class ComponentContextInitializerListener implements ServletContextListen
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-//        ComponentContext context = ComponentContext.getInstance();
-//        context.destroy();
+        ComponentContext context = ClassicComponentContext.getInstance();
+        context.destroy();
     }
 
 }
