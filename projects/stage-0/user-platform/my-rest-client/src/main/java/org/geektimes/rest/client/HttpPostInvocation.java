@@ -16,16 +16,21 @@
  */
 package org.geektimes.rest.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.geektimes.rest.core.DefaultResponse;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.InvocationCallback;
+import javax.ws.rs.core.Form;
 import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Variant;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -41,22 +46,59 @@ import java.util.concurrent.Future;
  * @since
  */
 class HttpPostInvocation implements Invocation {
-
-    private final URI uri;
+    
+    private static final ObjectMapper OBJECTMAPPER = new ObjectMapper();
 
     private final URL url;
 
     private final MultivaluedMap<String, Object> headers;
     
     private final Entity<?> entity;
+    
+    private byte[] body;
 
     HttpPostInvocation(URI uri, Entity<?> entity,MultivaluedMap<String, Object> headers) {
-        this.uri = uri;
+        URI newUri = uri;
         this.headers = headers;
         this.entity = entity;
-        entity.getEntity()
         try {
-            this.url = uri.toURL();
+            if (entity != null) {
+                Object content = this.entity.getEntity();
+                String encoding = "UTF-8";
+                Variant variant = this.entity.getVariant();
+                if (variant != null && variant.getEncoding() != null) {
+                    encoding = variant.getEncoding();
+                }
+                if (content != null) {
+                    if (content instanceof byte[]) {
+                        body = (byte[])content;
+                    }else if(content instanceof String){
+                        this.headers.putSingle("Content-Type",MediaType.APPLICATION_JSON);
+                        body = ((String)content).getBytes(encoding);
+                    }else if(content instanceof Form){
+                        //拼接uri
+                        Form form = (Form) content;
+                        MultivaluedMap<String, String> stringStringMultivaluedMap = form.asMap();
+                        //TODO 拼接参数
+                        // htpp://127.0.0.1/save?a=123&b=456
+                        
+                    }else {
+                        MediaType mediaType = this.entity.getMediaType();
+                        if (MediaType.APPLICATION_JSON_TYPE.equals(mediaType)) {
+                            this.headers.putSingle("Content-Type",MediaType.APPLICATION_JSON);
+                            body = OBJECTMAPPER.writeValueAsString(content).getBytes(encoding);
+                        }else {
+                            //TODO FORM DATA 转换
+                        }
+                    }
+    
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+        try {
+            this.url = newUri.toURL();
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException();
         }
@@ -72,12 +114,15 @@ class HttpPostInvocation implements Invocation {
         HttpURLConnection connection = null;
         try {
             connection = (HttpURLConnection) url.openConnection();
+            connection.setAllowUserInteraction(false);
             connection.setRequestMethod(HttpMethod.POST);
             setRequestHeaders(connection);
-            if (entity != null) {
-                
+            if (body != null) {
+                connection.setDoOutput(true);
+                try(OutputStream outputStream = connection.getOutputStream()) {
+                    outputStream.write(body);
+                }
             }
-            
             // TODO Set the cookies
             int statusCode = connection.getResponseCode();
 //            Response.ResponseBuilder responseBuilder = Response.status(statusCode);
