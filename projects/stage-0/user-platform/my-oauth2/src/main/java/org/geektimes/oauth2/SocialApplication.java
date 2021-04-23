@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +22,8 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
 
     @GetMapping("/user")
     public Map<String, Object> user(@AuthenticationPrincipal OAuth2User principal) {
-        return Collections.singletonMap("name", principal.getAttribute("name"));
+        SecurityContext context = SecurityContextHolder.getContext();
+        return Collections.singletonMap("name", principal == null ? "Hobart" : principal.getAttribute("name"));
     }
 
     public static void main(String[] args) {
@@ -32,7 +35,7 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
         // @formatter:off
         http
                 .authorizeRequests(a -> a
-                        .antMatchers("/", "/error", "/webjars/**").permitAll()
+                        .antMatchers("/", "/error", "/webjars/**","/hello.html","/user.html","/user").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e
